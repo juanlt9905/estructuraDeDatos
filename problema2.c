@@ -16,6 +16,16 @@ Pila insertar(Pila pila, char elemento_nuevo){
     return pila;
 }
 
+void insertar2(Pila *pila, char elemento_nuevo){
+    if (pila->tope_pila >99){
+        printf("Eror: Desbordamiento de pila.....");
+    }
+    else{
+        pila->elementos[pila->tope_pila] = elemento_nuevo;
+        pila->tope_pila++;
+    }
+}
+
 void imprimir_pila(Pila pila){
     printf("Los elementos de la pila son:");
     for(int i = 0; i<pila.tope_pila;i++){
@@ -30,6 +40,12 @@ Pila botar_tope(Pila pila){
     return pila;
 }
 
+Pila botar_tope2(Pila *pila){
+    pila->elementos[pila->tope_pila-1] = 'x';
+    pila->tope_pila = pila->tope_pila - 1;
+
+}
+
 char elemento_tope(Pila pila){
     
     return pila.elementos[pila.tope_pila-1];
@@ -39,35 +55,20 @@ int main(){
     //inicializar pila
     Pila pila;
     pila.tope_pila = 0;
-
-    /*char prueba = 'H';
-
-    pila = insertar(pila, prueba);
-    pila = insertar(pila, 'o');
-    pila = insertar(pila, 'l');
-
-    imprimir_pila(pila);
-
-    pila = botar_tope(pila);
-
-    imprimir_pila(pila);
-
-    printf("El elemento tope es: %c", elemento_tope(pila));*/
-    //printf("elemento instertado: %d", pila.elementos[pila.tope_pila-1]); 
      
-    char cadena[] = "((()()()()()))";
+    char cadena[] = "((()()()()())))"; //cadena a probar.
     int n = sizeof(cadena)/sizeof(cadena[0]) - 1;
     int anidado = 1;
 
     for (int i = 0; i < n; i++) {
         if (cadena[i] == '(') {
-            pila = insertar(pila, '(');
+            insertar2(&pila, '(');
         } else if (cadena[i] == ')') {
             if (pila.tope_pila == 0) {
                 anidado = 0; 
                 break;
             }
-            pila = botar_tope(pila);
+            botar_tope2(&pila);
         }
     }
 
