@@ -40,7 +40,7 @@ Pila botar_tope(Pila pila){
     return pila;
 }
 
-Pila botar_tope2(Pila *pila){
+void botar_tope2(Pila *pila){
     pila->elementos[pila->tope_pila-1] = 'x';
     pila->tope_pila = pila->tope_pila - 1;
 
@@ -51,19 +51,19 @@ char elemento_tope(Pila pila){
     return pila.elementos[pila.tope_pila-1];
 }
 
-int main(){
+int main(int argc, char **argv){
     //inicializar pila
     Pila pila;
     pila.tope_pila = 0;
      
-    char cadena[] = "((()()()()())))"; //cadena a probar.
-    int n = sizeof(cadena)/sizeof(cadena[0]) - 1;
+    //char cadena[] = "((()()()()())))"; //cadena a probar.
+    //int n = sizeof(cadena)/sizeof(cadena[0]) - 1;
     int anidado = 1;
 
-    for (int i = 0; i < n; i++) {
-        if (cadena[i] == '(') {
+    for (int i = 0; argv[1][i]!='\0'; i++) {
+        if (argv[1][i] == '(') {
             insertar2(&pila, '(');
-        } else if (cadena[i] == ')') {
+        } else if (argv[1][i] == ')') {
             if (pila.tope_pila == 0) {
                 anidado = 0; 
                 break;
