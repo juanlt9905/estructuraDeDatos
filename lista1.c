@@ -19,26 +19,39 @@ void AgregarInicio(TNodo**lista, int dato){
 void VerTodos(TNodo*lista){ //Muestra todos los nodos de la lista
 
     while(lista!=NULL){
-        printf("%d\n", lista->info);
+        printf("%d ", lista->info);
 
         lista=lista->sig;
 
     }
 }
 
+void eliminarPrimerNodo(TNodo **lista){
+    if (*lista!= NULL){
+        TNodo * x = *lista;
+        *lista = (*lista)->sig; // hace a lista apuntar al segundo nodo
+        free(x);
+    }
+}
+
 
 int main(){
 
-    TNodo *miEstructuraLista; //inicializando mi lista
-    AgregarInicio(&miEstructuraLista,2); //porque use &?
-    AgregarInicio(&miEstructuraLista,3);
-    AgregarInicio(&miEstructuraLista,4);
-    AgregarInicio(&miEstructuraLista,5);
-    AgregarInicio(&miEstructuraLista,6);
+    TNodo *miEstructuraLista=NULL; //inicializando mi lista
+    AgregarInicio(&miEstructuraLista,5); 
+    AgregarInicio(&miEstructuraLista,8);
+    Agregawewe5erInicio(&miEstructuraLista,-1);
+    AgregarInicio(&miEstructuraLista,20);
 
 
-    VerTodos(miEstructuraLista);//porque solo miEstructuraLista?
+    VerTodos(miEstructuraLista);
+    printf("\n");
 
+    eliminarPrimerNodo(&miEstructuraLista);
+    eliminarPrimerNodo(&miEstructuraLista);
+
+    VerTodos(miEstructuraLista);
+    printf("\n");
 
 
 
