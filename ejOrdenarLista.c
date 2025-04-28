@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 typedef struct nodo{
     int info;
@@ -34,23 +35,43 @@ void eliminarPrimerNodo(TNodo **lista){
     }
 }
 
+TNodo * listaOrdenar(TNodo ** lista){
+     
+    int aux;
+    TNodo * temp = *lista;
+
+    while (temp!=NULL){
+        
+        //aux = temp->valor;
+        TNodo * temp2 = temp->sig;
+        while (temp2 != NULL){
+            if (temp->info > temp2->info){
+                aux = temp->info;
+                temp->info = temp2->info;
+                temp2->info = aux;
+            }
+            temp2 = temp2 ->sig;
+
+        }
+
+        temp=temp->sig;
+    }
+    return *lista;
+
+}
+
 int main(){
 
-    TNodo *miEstructuraLista=NULL; //inicializando mi lista
-    AgregarInicio(&miEstructuraLista,5); 
-    AgregarInicio(&miEstructuraLista,8);
-    Agregawewe5erInicio(&miEstructuraLista,-1);
-    AgregarInicio(&miEstructuraLista,20);
+    TNodo *miLista=NULL; //inicializando mi lista
+    srand(time(NULL));
+    int i=0;
+    while (i<10){
+        AgregarInicio(&miLista, rand()%100);
+        i++;
+    }
 
-
-    VerTodos(miEstructuraLista);
-    printf("\n");
-
-    eliminarPrimerNodo(&miEstructuraLista);
-    eliminarPrimerNodo(&miEstructuraLista);
-
-    VerTodos(miEstructuraLista);
-    printf("\n");
+    TNodo *listaOrdenada = listaOrdenar(&miLista);
+    VerTodos(listaOrdenada);
 
 
 
