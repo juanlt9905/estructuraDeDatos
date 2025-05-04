@@ -110,7 +110,7 @@ TNodo * ordenarListasOrdenadas_a2(TNodo**listaA, TNodo **listaB){
     
     return listaC;
 }
-TNodo * ordenarListasOrdenadas_a(TNodo**listaA, TNodo **listaB){
+TNodo * ordenarListasOrdenadas_a(TNodo**listaA, TNodo **listaB){//AUB
     TNodo * listaC = NULL; //Lista ordenada
 
     TNodo * tempA = *listaA;
@@ -165,7 +165,7 @@ TNodo * ordenarListasOrdenadas_a(TNodo**listaA, TNodo **listaB){
     return listaC;
 }
 
-TNodo * ordenarListasOrdenadas_b(TNodo**listaA, TNodo **listaB){
+TNodo * ordenarListasOrdenadas_b(TNodo**listaA, TNodo **listaB){//A+B (duplicados)
     TNodo * listaC = NULL; //Lista ordenada
 
     TNodo * tempA = *listaA;
@@ -196,7 +196,7 @@ TNodo * ordenarListasOrdenadas_b(TNodo**listaA, TNodo **listaB){
 }
 
 
-TNodo * ordenarListasOrdenadas_c(TNodo**listaA, TNodo **listaB){
+TNodo * ordenarListasOrdenadas_c(TNodo**listaA, TNodo **listaB){//AInterseccionB
     TNodo * listaC = NULL; //Lista ordenada
 
     TNodo * tempA = *listaA;
@@ -206,7 +206,7 @@ TNodo * ordenarListasOrdenadas_c(TNodo**listaA, TNodo **listaB){
     int bandera=1;// bandera en 1 indica que aun no se ha insertado el primer elemento en C
 
     while(tempA!= NULL && (tempB!= NULL)){//Mientras ninguna sea nula, comparamos.
-        //solo se insertaran en C cuandolos haya elementos iguales
+        //solo se insertaran en C cuand solos haya elementos iguales
         if(tempA->info == tempB->info){
             if(bandera==1 || tempA->info!=ultimoElementoC){
                 AgregarFinal(&listaC, tempA->info);
@@ -225,6 +225,62 @@ TNodo * ordenarListasOrdenadas_c(TNodo**listaA, TNodo **listaB){
         }
 
     }
+    return listaC;
+}
+
+TNodo * ordenarListasOrdenadas_d(TNodo**listaA, TNodo **listaB){//A-B
+    TNodo * listaC = NULL; //Lista ordenada
+
+    TNodo * tempA = *listaA;
+    TNodo * tempB = *listaB;
+
+    int ultimoElementoC; //almacena el ultimo elemento insertado en la lista ordenada.
+    int elemento_repetido;
+    int bandera=1;// bandera en 1 indica que aun no se ha insertado el primer elemento en C
+                    //en este caso se utiliza bandera solamente para los sobrantes de A.
+    while(tempA!= NULL && (tempB!= NULL)){//Mientras ninguna sea nula, comparamos.
+        
+        if(tempA->info == tempB->info){
+            elemento_repetido = tempA->info;
+            //avanzamos en ambas listas hasta un valor distinto de elemento_repetido
+            while(tempA!=NULL && tempA->info==elemento_repetido)tempA=tempA->sig;
+            while(tempB!=NULL && tempB->info==elemento_repetido)tempB=tempB->sig;
+        }
+        else if(tempA->info < tempB->info){
+            //cuando elemento de A es menor a elemento de B, insertamos elemento de A en lista C
+            if (bandera || tempA->info != ultimoElementoC) {
+                AgregarFinal(&listaC, tempA->info);
+                ultimoElementoC = tempA->info;
+                bandera = 0;
+            }
+            tempA = tempA->sig;
+        }
+        else{
+            tempB = tempB->sig;
+        }
+
+    }
+    //Para elementos sobrantes en A
+    while (tempA != NULL) {
+        if (bandera==1 || tempA->info != ultimoElementoC) {
+            AgregarFinal(&listaC, tempA->info);
+            ultimoElementoC = tempA->info;
+            bandera = 0;
+        }
+        tempA = tempA->sig;}
+
+    
+    return listaC;
+}
+
+TNodo * ordenarListasOrdenadas_e(TNodo**listaA, TNodo **listaB){//(AUB)-(AinterseccionB)
+    
+    TNodo* unionListas = ordenarListasOrdenadas_a(listaA, listaB);
+    TNodo* interseccioListas = ordenarListasOrdenadas_c(listaA, listaB);
+
+    TNodo * listaC = ordenarListasOrdenadas_d(&unionListas, &interseccioListas);
+
+    
     return listaC;
 }
 
@@ -258,20 +314,30 @@ int main(int argc, int **argv){
     }
 
 
-    
+    //AUB
     TNodo * listaC = ordenarListasOrdenadas_a(&listaA, &listaB);
     printf("La lista Ordenada sin duplicados(AUB): \n");
     VerTodos(listaC);
     printf("\n");
-
+    //A+B
     TNodo * listaC2 = ordenarListasOrdenadas_b(&listaA, &listaB);
     printf("La lista Ordenada con duplicados (A+B): \n");
     VerTodos(listaC2);
     printf("\n");
-
+    //AinterseccionB
     TNodo * listaC3 = ordenarListasOrdenadas_c(&listaA, &listaB);
     printf("La lista Ordenada (AinterseccionB): \n");
     VerTodos(listaC3);
+    printf("\n");
+    //A-B
+    TNodo * listaC4 = ordenarListasOrdenadas_d(&listaA, &listaB);
+    printf("La lista Ordenada (A-B): \n");
+    VerTodos(listaC4);
+    printf("\n");
+    //(AUB)-(AinterseccionB)
+    TNodo * listaC5 = ordenarListasOrdenadas_e(&listaA, &listaB);
+    printf("La lista Ordenada (AUB)-(AinterseccionB): \n");
+    VerTodos(listaC5);
     printf("\n");
 
     return 0;
