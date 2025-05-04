@@ -48,6 +48,7 @@ int main(int argc, char **argv){
     char * a =argv[1];
     TNodo *pila=NULL; //inicializar pila
 
+    //primero verificamos que la cadena contenga solo 0,1 y :
     for(int i=0; a[i]!='\0'; i++){
         if (a[i]!='0' && a[i]!='1' && a[i]!=':'){
             printf("La cadena NO PERTENECE al lenguaje X.\n");
@@ -56,7 +57,7 @@ int main(int argc, char **argv){
     }
     //metemos la cadena L a la pila
     int j=0;
-    for(int i=0; a[i]!='\0' && a[i]!=':'; i++){
+    for(int i=0; a[i]!=':'; i++){
         push(&pila, a[i]);
         j++; //j almacena el indice donde encontremos a :
     }
@@ -82,7 +83,7 @@ int main(int argc, char **argv){
     else 
         printf("La cadena NO PERTENECE al lenguaje X.\n");
 
-    while (pilaVacia(pila)!=1) {
+    while (pilaVacia(pila)!=1) { //vaciar pila y liberar memoria mediante funcion pop
         pop(&pila);
     }
     
