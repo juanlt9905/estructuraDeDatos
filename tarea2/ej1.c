@@ -70,7 +70,7 @@ int existeElemento(TNodo **lista, int dato){
     return existe;
 }
 
-TNodo * ordenarListasOrdenadas_a(TNodo**listaA, TNodo **listaB){
+TNodo * ordenarListasOrdenadas_a2(TNodo**listaA, TNodo **listaB){
     TNodo * listaC = NULL; //Lista ordenada
 
     TNodo * tempA = *listaA;
@@ -110,6 +110,124 @@ TNodo * ordenarListasOrdenadas_a(TNodo**listaA, TNodo **listaB){
     
     return listaC;
 }
+TNodo * ordenarListasOrdenadas_a(TNodo**listaA, TNodo **listaB){
+    TNodo * listaC = NULL; //Lista ordenada
+
+    TNodo * tempA = *listaA;
+    TNodo * tempB = *listaB;
+    int ultimoElementoC; //almacena el ultimo elemento insertado en la lista ordenada.
+    int elementoInsertar;
+    int bandera=1;// bandera en 1 indica que aun no se ha insertado el primer elemento en C
+
+    while(tempA!= NULL && (tempB!= NULL)){
+        if(tempA->info == tempB->info){ //si ambos elementos son iguales, avanzamos en ambas listas 
+            elementoInsertar = tempA->info; //ya que no queremos duplicados
+            tempA=tempA->sig;
+            tempB=tempB->sig;
+        }
+        else if(tempA->info < tempB->info){
+            elementoInsertar = tempA->info;
+            tempA = tempA->sig;
+        }
+        else{
+            elementoInsertar = tempB->info;
+            tempB = tempB->sig;
+        }
+
+        if (bandera==1 || elementoInsertar!=ultimoElementoC){
+            AgregarFinal(&listaC, elementoInsertar);
+            ultimoElementoC = elementoInsertar;
+            bandera=0;//despues de insertar el primer elemento
+        }
+
+    }
+    //Vaciando en listaC la lista que no quedo vacia
+    while(tempA!=NULL){ 
+        //utilizamos bandera en caso de que alguna lista de entrada estuviera vacia
+        if(bandera==1 || tempA->info!=ultimoElementoC){ 
+            AgregarFinal(&listaC, tempA->info);
+            ultimoElementoC = tempA->info;
+            bandera=0;
+        }
+        tempA = tempA->sig;
+    }    
+    while(tempB!=NULL){
+        if (bandera==1 || tempB->info!=ultimoElementoC){
+            AgregarFinal(&listaC, tempB->info); 
+            ultimoElementoC = tempB->info;
+            bandera=0;
+        }
+        tempB = tempB->sig;
+        
+    }
+
+    
+    return listaC;
+}
+
+TNodo * ordenarListasOrdenadas_b(TNodo**listaA, TNodo **listaB){
+    TNodo * listaC = NULL; //Lista ordenada
+
+    TNodo * tempA = *listaA;
+    TNodo * tempB = *listaB;
+
+    while(tempA!= NULL && (tempB!= NULL)){//Mientras ninguna sea nula, comparamos.
+        
+        if(tempA->info <= tempB->info){
+            AgregarFinal(&listaC, tempA->info);
+            tempA = tempA->sig;
+        }
+        else{
+            AgregarFinal(&listaC, tempB->info);
+            tempB = tempB->sig;
+        }
+
+    }
+    //Vaciando en listaC la lista que no quedo vacia
+    while(tempA!=NULL){ 
+        AgregarFinal(&listaC, tempA->info);
+        tempA = tempA->sig;
+    }    
+    while(tempB!=NULL){
+        AgregarFinal(&listaC, tempB->info); 
+        tempB = tempB->sig;
+    }
+    return listaC;
+}
+
+
+TNodo * ordenarListasOrdenadas_c(TNodo**listaA, TNodo **listaB){
+    TNodo * listaC = NULL; //Lista ordenada
+
+    TNodo * tempA = *listaA;
+    TNodo * tempB = *listaB;
+
+    int ultimoElementoC; //almacena el ultimo elemento insertado en la lista ordenada.
+    int bandera=1;// bandera en 1 indica que aun no se ha insertado el primer elemento en C
+
+    while(tempA!= NULL && (tempB!= NULL)){//Mientras ninguna sea nula, comparamos.
+        //solo se insertaran en C cuandolos haya elementos iguales
+        if(tempA->info == tempB->info){
+            if(bandera==1 || tempA->info!=ultimoElementoC){
+                AgregarFinal(&listaC, tempA->info);
+                ultimoElementoC = tempA->info;
+                bandera=0;
+            }
+            tempA = tempA->sig;
+            tempB = tempB->sig;
+        }
+        else if(tempA->info < tempB->info){
+            //cuando son distintos, solo avanzas
+            tempA = tempA->sig;
+        }
+        else{
+            tempB = tempB->sig;
+        }
+
+    }
+    return listaC;
+}
+
 
 int main(int argc, int **argv){
 
@@ -140,10 +258,21 @@ int main(int argc, int **argv){
     }
 
 
-    printf("La lista Ordenada es: \n");
-    TNodo * listaC = ordenarListasOrdenadas_a(&listaA, &listaB);
-    VerTodos(listaC);
     
+    TNodo * listaC = ordenarListasOrdenadas_a(&listaA, &listaB);
+    printf("La lista Ordenada sin duplicados(AUB): \n");
+    VerTodos(listaC);
+    printf("\n");
+
+    TNodo * listaC2 = ordenarListasOrdenadas_b(&listaA, &listaB);
+    printf("La lista Ordenada con duplicados (A+B): \n");
+    VerTodos(listaC2);
+    printf("\n");
+
+    TNodo * listaC3 = ordenarListasOrdenadas_c(&listaA, &listaB);
+    printf("La lista Ordenada (AinterseccionB): \n");
+    VerTodos(listaC3);
+    printf("\n");
 
     return 0;
 }

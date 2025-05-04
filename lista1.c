@@ -7,6 +7,7 @@ typedef struct nodo{
 }TNodo;
 
 void AgregarInicio(TNodo**lista, int dato){
+    //puntero doble, ya que modificamos la cabecera de la lista
     TNodo *nuevo=NULL;
     //Agregar memoria para el nuevo nodo
     nuevo=(TNodo*) malloc(sizeof(TNodo));
