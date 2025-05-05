@@ -183,14 +183,20 @@ TNodo * ordenarListasOrdenadas_b(TNodo**listaA, TNodo **listaB){//A+B (duplicado
 }
 
 int main(int argc, char **argv){
-
+    /*recibe de entrada, el numero de listas a generar, seguido de
+    el numero de elementos de cada lista*/
     srand(time(NULL));
 
-    int nListas =3; //numero de listas que contendra el verctor
+    int nListas = atoi(argv[1]); //numero de listas que contendra el verctor
     TNodo **vectorDeListas = (TNodo**) malloc(sizeof(TNodo*)*nListas);
 
-    for (int i =0; i<nListas; i++)
-        vectorDeListas[i] = crearListaOrdenada(6);
+    for (int i =0; i<nListas; i++){
+        vectorDeListas[i] = crearListaOrdenada(atoi(argv[i+2]));
+        printf("Lista %d\n", i+1);
+        verTodos(vectorDeListas[i]);
+        printf("\n");
+    }
+    
     
     TNodo * listaCombinada = vectorDeListas[0]; //inicializa con la primer lista
     TNodo * aux =NULL; //apuntador auxiliar
@@ -201,7 +207,9 @@ int main(int argc, char **argv){
         listaCombinada = aux;
     }
 
+    printf("Lista Combinada con duplicados:\n");
     verTodos(listaCombinada);
+    printf("\n");
 
 
     // Liberar memoria

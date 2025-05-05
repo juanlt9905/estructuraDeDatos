@@ -189,11 +189,15 @@ int main(int argc, char **argv){
     //Para este ejercicio, creamos la funcion de lista ordenada para definir las listas
     //TNodo * lista1 = crearListaOrdenada(8);
     //VerTodos(lista1);
-    int nListas =3;
+    int nListas = atoi(argv[1]); //numero de listas que contendra el verctor
     TNodo **vectorDeListas = (TNodo**) malloc(sizeof(TNodo*)*nListas);
 
-    for (int i =0; i<nListas; i++)
-        vectorDeListas[i] = crearListaOrdenada(6);
+    for (int i =0; i<nListas; i++){
+        vectorDeListas[i] = crearListaOrdenada(atoi(argv[i+2]));
+        printf("Lista %d\n", i+1);
+        verTodos(vectorDeListas[i]);
+        printf("\n");
+    }
     
     TNodo * listaCombinada = vectorDeListas[0]; //inicializa con la primer lista
     TNodo * aux =NULL; //apuntador auxiliar
@@ -205,8 +209,9 @@ int main(int argc, char **argv){
         listaCombinada = aux;
     }
 
+    printf("Lista Combinada sin Duplicados\n");
     verTodos(listaCombinada);
-
+    printf("\n");
 
     // Liberar memoria
     for (int i = 1; i < nListas; i++)
