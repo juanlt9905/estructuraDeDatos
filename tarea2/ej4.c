@@ -4,7 +4,6 @@
 
 typedef struct nodo{
     int info;
-    int
     struct nodo *sig;
 }TNodo;
 
@@ -57,13 +56,52 @@ void AgregarFinal(TNodo**lista, int dato){
     }
 }
 
+void extraerColaConPrioridad(TNodo ** cola){
+
+
+    if (*cola == NULL) {
+        printf("Cola vacia\n");
+        return;
+    }
+
+    TNodo *temp = *cola; //puntero que recorrera la lista
+    TNodo *max = *cola; //puntero que indicara donde esta el maximo
+    TNodo *antesMaximo = NULL;
+    TNodo *antes_temp = NULL;
+
+    while(temp != NULL){
+        if (max->info <= temp->info){
+            max = temp;
+            antesMaximo= antes_temp;   
+        }
+        antes_temp =temp;
+        temp = temp->sig;
+    }
+
+    if(antesMaximo == NULL)
+        //si antesMaximo es null, el maximo es el primer elemento.
+        (*cola) = (*cola)->sig;
+    else
+        antesMaximo->sig = max->sig;
+    free(max);
+
+}
+
 
 int main(){
 
+    srand(time(NULL));
     //Defino a mi cola como una lista
     TNodo * cola = NULL;
 
+    for (int i =0 ; i<5; i++) AgregarInicio(&cola, rand()%100);
 
+    verTodos(cola);
+    
+    for (int i =0; i<6; i++){
+        printf("\n");
+        extraerColaConPrioridad(&cola);
+        verTodos(cola);}
 
     return 0;
 }
