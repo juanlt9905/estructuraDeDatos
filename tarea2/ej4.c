@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 
+
 typedef struct nodo{
     int info;
     struct nodo *sig;
@@ -96,10 +97,13 @@ int main(){
 
     for (int i =0 ; i<5; i++) AgregarInicio(&cola, rand()%100);
 
+    printf("Cola generada:\n");
+
     verTodos(cola);
     
     for (int i =0; i<6; i++){
         printf("\n");
+        printf("Eliminacion %d:\n", i+1);
         extraerColaConPrioridad(&cola);
         verTodos(cola);}
 

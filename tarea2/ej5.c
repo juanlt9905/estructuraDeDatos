@@ -79,35 +79,31 @@ int main(){
     Heap heap;
     inicializarHeap(&heap);
     //inicializarCola(&miEstructuraCola);
-    insertarElementoHeap(&heap, 22);
     insertarElementoHeap(&heap, 10);
-    insertarElementoHeap(&heap, 52);
-    insertarElementoHeap(&heap, 15);
-    insertarElementoHeap(&heap, 33);
-    insertarElementoHeap(&heap, 40);
-    insertarElementoHeap(&heap, 38);
-    insertarElementoHeap(&heap, 60);
     insertarElementoHeap(&heap, 73);
     insertarElementoHeap(&heap, 45);
+    insertarElementoHeap(&heap, 38);
+    insertarElementoHeap(&heap, 60);
     insertarElementoHeap(&heap, 95);
-    insertarElementoHeap(&heap, 70);
-
+    insertarElementoHeap(&heap, 33);
+    insertarElementoHeap(&heap, 22);
+    insertarElementoHeap(&heap, 52);
+    insertarElementoHeap(&heap, 15);
+    insertarElementoHeap(&heap, 40);
+    
+    printf("Heap:\n");
     for (int i=0; i<heap.nElementos; i++){
         printf("%d ", heap.elementos[i]);
     }
     printf("\n");
     extraerMax(&heap);
-
+    extraerMax(&heap);
+    printf("Después de extraer dos elementos del heap:\n");
     for (int i=0; i<heap.nElementos; i++){
         printf("%d ", heap.elementos[i]);
     }    
 
     printf("\n");
-
-
-
-
-
 
 
 
