@@ -45,6 +45,26 @@ int estadoFinal(EstadoJarras * estado){
     if (estado->jarra4 ==2)return 1;
     else return 0;
 }
+void liberarLista(TNodo *lista) {
+    TNodo *temp;
+    while (lista != NULL) {
+        temp = lista;
+        lista = lista->sig;
+        free(temp);
+    }
+}
+
+int existeEstado(TNodo *lista, EstadoJarras estado_buscado){// funcion que verifica la existencia de un estado en una lista
+    TNodo *temp=lista;
+
+    while(temp != NULL){
+        if(temp->estado.jarra4 ==estado_buscado.jarra4 && temp->estado.jarra3 == estado_buscado.jarra3){
+            return 1; // se encontro estado
+        }
+        temp = temp->sig;
+    }
+    return 0;//no se encontro estado
+}
 
 //Definir los operadores
 
@@ -120,8 +140,19 @@ void AgregarFinal(TNodo**lista, EstadoJarras estado){//Función para agregar ele
         ultimo_nodo->sig = nuevo;
     }
 }
+void AgregarInicio(TNodo**lista, EstadoJarras estado){
+    //puntero doble, ya que modificamos la cabecera de la lista
+    TNodo *nuevo=NULL;
+    //Agregar memoria para el nuevo nodo
+    nuevo=(TNodo*) malloc(sizeof(TNodo));
+    nuevo->estado=estado; //Asigna el valor a nodo
+    nuevo->sig= *lista; //Coloca nodo al inicio de lista
+    *lista = nuevo; //El inicio de lista cambia al nuevo
 
-TNodo *  sucesores(EstadoJarras *estado_actual){
+}
+
+
+TNodo *  sucesores(EstadoJarras *estado_actual){ //Funcion para crear los nuevos sucesores de un estado
     TNodo* lista_sucesores =NULL;
     EstadoJarras nuevo_estado;
     EstadoJarras vec[6]; //almacenamiento temporal
@@ -196,6 +227,24 @@ TNodo *  sucesores(EstadoJarras *estado_actual){
 
     return lista_sucesores;
 }
+
+TNodo * nuevosSucesores(EstadoJarras *estado_actual, TNodo *abiertos, TNodo *cerrados){
+    TNodo *lista_sucesores =sucesores(estado_actual);
+    TNodo *nuevos_sucesores=NULL;
+
+    //Guardar en nuevos suceros los nodos que no estan en abiertos ni cerrados
+    TNodo *temp= lista_sucesores;
+    while(temp!=NULL){
+        if(existeEstado(abiertos, temp->estado)!=1 && existeEstado(cerrados, temp->estado)!=1){
+            //Agregar a nuevos sucesores.
+            AgregarFinal(&nuevos_sucesores, temp->estado);
+        }
+        temp=temp->sig;
+    }
+    liberarLista(lista_sucesores);
+
+    return nuevos_sucesores;
+}
 void VerTodos(TNodo*lista){ //Muestra todos los nodos de la lista
 
     while(lista!=NULL){
@@ -205,20 +254,80 @@ void VerTodos(TNodo*lista){ //Muestra todos los nodos de la lista
 
     }
 }
+
+TNodo * reconstruirCamino(EstadoJarras estado_meta) {
+    TNodo * camino =NULL;
+    EstadoJarras *estado_actual= &estado_meta;
+
+    //Reconstruir camino desde la meta al estado inicial/
+    while(estado_actual !=NULL){
+        //Agregar al inicio para mantener el orden de inicio a meta
+        AgregarInicio(&camino, *estado_actual);
+        //moverse al padre
+        estado_actual= estado_actual->padre;
+    }
+
+    return camino;
+}
+
+TNodo *busquedaPorAnchura(EstadoJarras estado_inicial){ //regresa el camino (lista) a la solucion
+    TNodo *abiertos=NULL;
+    TNodo *cerrados=NULL;
+    
+    //hacer abiertos la cola formada por el nodo inicial
+    AgregarFinal(&abiertos, estado_inicial);
+    
+    //Mientras abiertos no este vacio
+    while(abiertos!=NULL){
+        //Hacer estado actual el primer nodo de abiertos.
+        //EstadoJarras estado_actual = abiertos->estado;
+        TNodo *nodo_actual= abiertos;
+        abiertos=abiertos->sig; //hacer abiertos el resto de abiertos
+    
+        AgregarInicio(&cerrados, nodo_actual->estado);//poner nodo actual en cerrados
+        //verificar si estado actual es meta
+        if(estadoFinal(&nodo_actual->estado)==1){
+            return reconstruirCamino(nodo_actual->estado);
+        }
+        TNodo * nuevos_sucesores = nuevosSucesores(&nodo_actual->estado, abiertos, cerrados);
+        
+        //AGREGAR NUEVOS SUCESORES AL FINAL DE ABIERTOS (BUSQUEDA POR ANCHURA)
+        while(nuevos_sucesores!=NULL){
+            AgregarFinal(&abiertos, nuevos_sucesores->estado);
+            TNodo* temp = nuevos_sucesores;
+            nuevos_sucesores = nuevos_sucesores->sig;
+            free(temp);//liberar nodo de nuevos sucesores
+        }
+        free(nodo_actual);;
+        
+    }
+    liberarLista(abiertos);
+    liberarLista(cerrados);
+    return NULL;
+}
 int main(){
 
     srand(time(NULL)); 
+    
+    /*EstadoJarras estado_inicial;
+    inicializarJarras(&estado_inicial);
+
+    TNodo *solucion = busquedaPorAnchura(estado_inicial);
+
+    VerTodos(solucion);
+    liberarLista(solucion);
+    */
+
+
     TNodo *nodo = (TNodo*)malloc(sizeof(TNodo));
     TNodo *nodo2 =(TNodo*)malloc(sizeof(TNodo));
 
+    nodo2=llenarJarra4();
     inicializarJarras(&nodo->estado);
-    nodo2->estado.jarra3=2;
-    nodo2->estado.jarra4=2;
 
-    TNodo * lista_sucesores2 = sucesores(&(nodo2->estado));
 
-    //printf("Jarra 3: %d, Jarra 4: %d\n", nodo->estado.jarra3, nodo->estado.jarra4);
     
+    TNodo * camino = reconstruirCamino()
     TNodo * lista_sucesores =sucesores(&(nodo->estado));
 
     printf("Primer Nodo: \n");
@@ -229,7 +338,7 @@ int main(){
 
 
     free(nodo);
-
+    free(nodo2);
 
 
     return 0;
