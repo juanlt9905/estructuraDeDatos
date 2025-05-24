@@ -339,7 +339,7 @@ TNodo *busquedaPorAnchura(TNodo *nodo_inicial){ //regresa el camino (lista) a la
         
         //AGREGAR NUEVOS SUCESORES AL FINAL DE ABIERTOS (BUSQUEDA POR ANCHURA)
         while(nuevos_sucesores!=NULL){
-            AgregarFinal_conPadre(&abiertos, nuevos_sucesores->estado, nodo_actual);
+            AgregarInicio_conPadre(&abiertos, nuevos_sucesores->estado, nodo_actual);
             TNodo* temp = nuevos_sucesores;
             nuevos_sucesores = nuevos_sucesores->sig;
             free(temp);//liberar nodo de nuevos sucesores

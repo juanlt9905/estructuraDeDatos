@@ -297,9 +297,9 @@ TNodo * nuevosSucesores(TNodo * nodo_actual, TNodo *abiertos, TNodo *cerrados){
     return nuevos_sucesores;
 }
 
-TNodo * reconstruirCamino(TNodo * nodo_meta, TNodo * cerrados) {
+TNodo * reconstruirCamino(TNodo * nodo_meta) {//quite cerrados
     TNodo * camino =NULL;
-    TNodo *recorre_por_padres=cerrados;
+    TNodo *recorre_por_padres=nodo_meta;
 
     //Reconstruir camino desde la meta al estado inicial/
     int i=0;
@@ -312,12 +312,26 @@ TNodo * reconstruirCamino(TNodo * nodo_meta, TNodo * cerrados) {
 
     return camino;
 }
-TNodo *busquedaPorAnchura(TNodo *nodo_inicial){ //regresa el camino (lista) a la solucion
+
+int estadoEnCamino(TNodo *nodo_actual, EstadoJarras estado_buscado){// busca los estados en una ramificacion mediante el padre
+    TNodo *temp = nodo_actual;
+
+    while(temp != NULL){
+        if(temp->estado.jarra4 ==estado_buscado.jarra4 && temp->estado.jarra3 == estado_buscado.jarra3){
+            return 1; // se encontro estado
+        }
+        temp = temp->padre;
+    }
+    return 0;//no se encontro estado
+}
+
+
+TNodo *busquedaPorProfundidad(TNodo *nodo_inicial){ //regresa el camino (lista) a la solucion
     TNodo *abiertos=NULL;
-    TNodo *cerrados=NULL;
+    //TNodo *cerrados=NULL;
     
-    //hacer abiertos la cola formada por el nodo inicial
-    AgregarFinal_conPadre(&abiertos, nodo_inicial->estado, nodo_inicial->padre);
+    //hacer abiertos la pila formada por el nodo inicial
+    AgregarInicio_conPadre(&abiertos, nodo_inicial->estado, nodo_inicial->padre);
     
     //Mientras abiertos no este vacio
     while(abiertos!=NULL){
@@ -325,27 +339,27 @@ TNodo *busquedaPorAnchura(TNodo *nodo_inicial){ //regresa el camino (lista) a la
         TNodo *nodo_actual= abiertos;
         abiertos=abiertos->sig; //hacer abiertos el resto de abiertos
         
-        AgregarInicio_conPadre(&cerrados, nodo_actual->estado, nodo_actual->padre);//poner nodo actual en cerrados
-        
         //verificar si estado actual es meta
         if(estadoFinal(&nodo_actual->estado)==1){
-            TNodo *camino = reconstruirCamino(nodo_actual, cerrados);
+            TNodo *camino = reconstruirCamino(nodo_actual);
             return camino;
             liberarLista(abiertos);
-            liberarLista(cerrados);
+            //liberarLista(cerrados);
             free(nodo_actual);
         }
-        TNodo * nuevos_sucesores = nuevosSucesores(nodo_actual, abiertos, cerrados);
-        
-        //AGREGAR NUEVOS SUCESORES AL FINAL DE ABIERTOS (BUSQUEDA POR ANCHURA)
-        while(nuevos_sucesores!=NULL){
-            AgregarFinal_conPadre(&abiertos, nuevos_sucesores->estado, nodo_actual);
-            TNodo* temp = nuevos_sucesores;
-            nuevos_sucesores = nuevos_sucesores->sig;
-            free(temp);//liberar nodo de nuevos sucesores
+        // Generamos todos los posibles sucesores del estado actual.
+        TNodo* lista_sucesores = sucesores(&nodo_actual); //generar los posibles sucesores.
+        TNodo * sucesor =lista_sucesores; //RECORRE POR PADRES
+        //AGREGAR NUEVOS SUCESORES AL INICIO DE ABIERTOS (BUSQUEDA POR PRFUNDIDAD)
+        while (sucesor!=NULL){ 
+            
+            if(estadoEnCamino(nodo_actual, sucesor->estado)==0 && existeEstado(abiertos, sucesor->estado) == 0){
+                AgregarInicio_conPadre(&abiertos, sucesor->estado, nodo_actual);
+            }
+            sucesor=sucesor->sig;
         }
         
-        
+        liberarLista(lista_sucesores);
     }
 
     return NULL;
@@ -359,7 +373,7 @@ int main(){
     nodo_inicial=(TNodo*) malloc(sizeof(TNodo)); //memoria para el nuevo nodo
     inicializarJarras(nodo_inicial); //inicializar nodo incial
     
-    TNodo *camino = busquedaPorAnchura(nodo_inicial);
+    TNodo *camino = busquedaPorProfundidad(nodo_inicial);
     
     VerTodos(camino);//reconstruir camino
 
