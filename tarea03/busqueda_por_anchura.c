@@ -21,6 +21,7 @@ typedef struct estados{
 typedef struct nodo{
     EstadoJarras estado;
     struct nodo *sig;
+
 }TNodo; //Nodo definido para el manejo de colas
 
 int max(int a, int b){
@@ -269,6 +270,27 @@ TNodo * reconstruirCamino(EstadoJarras estado_meta) {
 
     return camino;
 }
+/*
+TNodo * reconstruirCamino2(TNodo * cerrados) {
+    TNodo * camino =NULL;
+    TNodo *temp = cerrados;
+    //EstadoJarras *estado_actual= &estado_meta;
+    //NOdo meta debe ser el primer nodo de cerrados
+    EstadoJarras estado_actual = temp->estado;
+    temp = temp->sig;
+
+    //Reconstruir camino desde la meta al estado inicial/
+    while(temp !=NULL){
+        //Agregar al inicio para mantener el orden de inicio a meta
+        if (estado_actual.padre == temp->estado.padre)
+            AgregarInicio(&camino, estado_actual);
+        //moverse al padre
+        estado_actual= estado_actual->padre;
+    }
+
+    return camino;
+}*/
+
 
 TNodo *busquedaPorAnchura(EstadoJarras estado_inicial){ //regresa el camino (lista) a la solucion
     TNodo *abiertos=NULL;
@@ -309,16 +331,16 @@ int main(){
 
     srand(time(NULL)); 
     
-    /*EstadoJarras estado_inicial;
+    EstadoJarras estado_inicial;
     inicializarJarras(&estado_inicial);
 
     TNodo *solucion = busquedaPorAnchura(estado_inicial);
 
     VerTodos(solucion);
     liberarLista(solucion);
-    */
+    
 
-
+/*
     TNodo *nodo = (TNodo*)malloc(sizeof(TNodo));
     TNodo *nodo2 =(TNodo*)malloc(sizeof(TNodo));
 
@@ -338,7 +360,7 @@ int main(){
 
 
     free(nodo);
-    free(nodo2);
+    free(nodo2);*/
 
 
     return 0;

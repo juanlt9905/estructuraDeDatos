@@ -6,12 +6,12 @@ typedef struct nodo{
     struct nodo *sig;
 }TNodo;
 
-void AgregarInicio(TNodo**lista, EstadoJarras estado){
+void AgregarInicio(TNodo**lista, int dato){
     //puntero doble, ya que modificamos la cabecera de la lista
     TNodo *nuevo=NULL;
     //Agregar memoria para el nuevo nodo
     nuevo=(TNodo*) malloc(sizeof(TNodo));
-    nuevo->estado=estado; //Asigna el valor a nodo
+    nuevo->info=dato; //Asigna el valor a nodo
     nuevo->sig= *lista; //Coloca nodo al inicio de lista
     *lista = nuevo; //El inicio de lista cambia al nuevo
 
@@ -34,38 +34,13 @@ void eliminarPrimerNodo(TNodo **lista){
         free(x);
     }
 }
-TNodo * reconstruirCamino(EstadoJarras estado_meta) {
-    TNodo * camino =NULL;
-    EstadoJarras *estado_actual= &estado_meta;
 
-    //Reconstruir camino desde la meta al estado inicial/
-    while(estado_actual !=NULL){
-
-    }
-}
-
-TNodo *busquedaPorAnchura(EstadoJarras estado_inicial){
-    TNodo *abiertos=NULL;
-    TNodo *cerrados=NULL;
-
-    //hacer abiertos la cola formada por el nodo inicial
-    AgregarFinal(&abiertos, estado_inicial);
-
-    //Mientras abiertos no este vacio
-    while(abiertos!=NULL){
-        //Hacer estado actual el primer nodo de abiertos.
-        EstadoJarras estado_actual = abiertos->estado;
-
-        TNodo * nodo_actual=abiertos
-    }
-
-}
 int main(){
 
     TNodo *miEstructuraLista=NULL; //inicializando mi lista
     AgregarInicio(&miEstructuraLista,5); 
     AgregarInicio(&miEstructuraLista,8);
-    Agregawewe5erInicio(&miEstructuraLista,-1);
+    AgregarInicio(&miEstructuraLista,-1);
     AgregarInicio(&miEstructuraLista,20);
 
 
