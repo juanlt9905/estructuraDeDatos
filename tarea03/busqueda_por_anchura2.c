@@ -23,7 +23,6 @@ typedef struct estados{
     int jarra4;
     int jarra3;
     int op_aplicado_padre;
-    //struct estados * padre;
 }EstadoJarras;
 
 typedef struct nodo{
@@ -48,7 +47,7 @@ void AgregarFinal_conPadre(TNodo**lista, EstadoJarras estado, TNodo *padre){//Fu
             ultimo_nodo = ultimo_nodo->sig;
         }
         //asignamos a siguiente del ultimo nodo, al nuevo nodo.
-        ultimo_nodo->sig = nuevo;
+        ultisrand(time(NULL)); mo_nodo->sig = nuevo;
     }
 }
 int estadoFinal(EstadoJarras * estado){

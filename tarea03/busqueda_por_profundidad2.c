@@ -354,7 +354,7 @@ TNodo *busquedaPorProfundidad(TNodo *nodo_inicial){ //regresa el camino (lista) 
         while (sucesor!=NULL){ 
             
             if(estadoEnCamino(nodo_actual, sucesor->estado)==0 && existeEstado(abiertos, sucesor->estado) == 0){
-                AgregarInicio_conPadre(&abiertos, sucesor->estado, nodo_actual);
+                AgregarInicio_conPadre(&abiertos, sucesor->estado, nodo_actual);// Pila
             }
             sucesor=sucesor->sig;
         }

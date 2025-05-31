@@ -148,8 +148,6 @@ TNodo * crearListaOrdenada(int nElementos){
     }
 
     return listaOrdenar(&lista);
-
-
 }
 
 TNodo * ordenarListasOrdenadas_b(TNodo**listaA, TNodo **listaB){//A+B (duplicados)

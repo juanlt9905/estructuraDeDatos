@@ -312,7 +312,7 @@ TNodo * reconstruirCamino(TNodo * nodo_meta, TNodo * cerrados) {
 
     return camino;
 }
-TNodo *busquedaPorAnchura(TNodo *nodo_inicial){ //regresa el camino (lista) a la solucion
+TNodo *busquedaPorProfundidad(TNodo *nodo_inicial){ //regresa el camino (lista) a la solucion
     TNodo *abiertos=NULL;
     TNodo *cerrados=NULL;
     
@@ -359,7 +359,7 @@ int main(){
     nodo_inicial=(TNodo*) malloc(sizeof(TNodo)); //memoria para el nuevo nodo
     inicializarJarras(nodo_inicial); //inicializar nodo incial
     
-    TNodo *camino = busquedaPorAnchura(nodo_inicial);
+    TNodo *camino = busquedaPorProfundidad(nodo_inicial);
     
     VerTodos(camino);//reconstruir camino
 
