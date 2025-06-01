@@ -307,7 +307,13 @@ int main(){
     verConjuntos(miListaConjuntos);
 
     printf("Eliminacion de conjunto C:\n");
-    eliminarConjunto(&miListaConjuntos, 'D');
+    eliminarConjunto(&miListaConjuntos, 'C');
+
+    verConjuntos(miListaConjuntos);
+
+    AgregarConjunto(&miListaConjuntos, 'D');
+
+    printf("Agregar nuevo conjunto D\n");
 
     verConjuntos(miListaConjuntos);
     liberarListaDeConjuntos(&miListaConjuntos);
