@@ -43,7 +43,16 @@ int agregarNodo(TNodo**raiz, int dato)
         padre->der = nuevo;
     return 1;
 }
-
+TNodo*buscarNodo(TNodo*raiz, int dato){
+    if(raiz==NULL)
+        return NULL;    
+    else if(raiz->info== dato)
+        return raiz;
+    else f(dato < raiz->info)
+        return buscarNodo(raiz->izq, dato);
+    else
+        return buscarNodo(raiz->der, dato);
+}
 void inOrden(TNodo*raiz){
     if(raiz!=NULL){
     inOrden(raiz->izq);

@@ -42,7 +42,6 @@ int agregarNodo_hiladoDerecha(TNodo**raiz, int dato)
     el nodo raiz*/
     if(padre==NULL) {
         *raiz=nuevo;
-        nuevo->rthread = 1;
     }
     /* Si el dato es menor que el que contiene el nodo padre, lo insertamos
     en la rama izquierda */
@@ -59,6 +58,27 @@ int agregarNodo_hiladoDerecha(TNodo**raiz, int dato)
         padre->der = nuevo;  //asignamos como hijo derecho a padre
     }
     return 1;
+}
+
+void rotarDerecha(TNodo **raiz, int dato){
+
+    TNodo*padre = NULL;
+    TNodo*actual = *raiz;
+    int enc=0;
+    /* Buscar el dato en el árbol, manteniendo un puntero al nodo padre */
+    while(actual!=NULL && enc==0) {
+        padre = actual;
+        if(dato < actual->info)
+            actual = actual->izq;
+        else if(dato > actual->info)
+            actual = actual->der;
+        else
+            enc=1;
+    }
+
+    
+
+
 }
 TNodo *leftmost(TNodo *n)
 {
@@ -93,10 +113,41 @@ int main(){
     agregarNodo_hiladoDerecha(&raiz, 25);
     agregarNodo_hiladoDerecha(&raiz, 40);
 
+    printf("Arbol de ejemplo 1 (recorrido inOrder):\n");
     inOrder_iterative(raiz);
+    printf("\n");
 
+    TNodo *raiz2=NULL;
 
+    
+    agregarNodo_hiladoDerecha(&raiz2, 6);
+    agregarNodo_hiladoDerecha(&raiz2, 3);
+    agregarNodo_hiladoDerecha(&raiz2, 8);
+    agregarNodo_hiladoDerecha(&raiz2, 1);
+    agregarNodo_hiladoDerecha(&raiz2, 5);
+    agregarNodo_hiladoDerecha(&raiz2, 7);
+    agregarNodo_hiladoDerecha(&raiz2, 11);
+    agregarNodo_hiladoDerecha(&raiz2, 9);
+    agregarNodo_hiladoDerecha(&raiz2, 13);
 
+    printf("Arbol de ejemplo 2 (recorrido inOrder):\n");
+    inOrder_iterative(raiz2);
+    printf("\n");
+
+    TNodo *raiz3=NULL;
+    agregarNodo_hiladoDerecha(&raiz3, 3);
+    agregarNodo_hiladoDerecha(&raiz3, 2);
+    agregarNodo_hiladoDerecha(&raiz3, 6);
+    agregarNodo_hiladoDerecha(&raiz3, 1);
+    agregarNodo_hiladoDerecha(&raiz3, 4);
+    agregarNodo_hiladoDerecha(&raiz3, 8);
+    agregarNodo_hiladoDerecha(&raiz3, 5);
+    agregarNodo_hiladoDerecha(&raiz3, 7);
+    agregarNodo_hiladoDerecha(&raiz3, 9);
+
+    printf("Arbol de ejemplo 3 (recorrido inOrder):\n");
+    inOrder_iterative(raiz3);
+    printf("\n");
 
     return 0;
 }
