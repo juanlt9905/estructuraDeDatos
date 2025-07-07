@@ -35,6 +35,7 @@ int agregarNodo(TNodo**raiz, int dato)
     nuevo->izq=NULL;
     nuevo->der=NULL;
     nuevo->nodoPadre=padre;
+    nuevo->color=0; //todo nodo insertado es rojo
     /* Si padre es NULL, entonces el árbol estaba vacío, el nuevo nodo será
     el nodo raiz*/
     if(padre==NULL) {
@@ -58,8 +59,7 @@ TNodo * buscarNodo(TNodo *raiz, int dato_buscado){//regresa un apuntador al nodo
         else
             actual = actual->der;
     }
-
-    return actual;
+    actual;
 }
 
 void rotacionDer(TNodo **raiz, int dato_rotar){
