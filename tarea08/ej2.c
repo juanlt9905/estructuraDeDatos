@@ -3,6 +3,7 @@
 #include <time.h>
 
 #define B 7 //tamaño de la tabla cerrada
+#define M 9 //tamanio de la tabla abierta
 
 typedef enum{vacio, ocupado, descartado}
 state;
@@ -17,19 +18,16 @@ typedef struct {
     int n; // Elementos en la tabla cerrada
 } TablaCerrada;
 
-#define M 9 //tamaño de la tabla abierta
-//typedef struct {
-//    TablaCerrada* tablas[M]; // Arreglo de apuntadores a tablas cerradas
-//} TablaAbierta;
-
 TablaCerrada * hashtab[M]; //mi tabla abierta, ARRAY DE APUNTADORES A TABLAS CERRADAS
 //int n; //n elementos ocupados en la tabla
 
-int hash(int clave){
-    return  (5*clave +1)%B;
-}
+
 int hashPrincipal(int clave){
     return (7*clave+1)%M;
+}
+
+int hash(int clave){
+    return  (5*clave +1)%B;
 }
 
 void makeNull(){ //inicializar tabla abierta
@@ -130,21 +128,20 @@ int insertarEnCerrado(TablaCerrada *tabla, int clave){
 }
 }
 
-int descartarEnCerrado(TablaCerrada *tabla, int clave){
+int buscarAbierta(int clave) {
+    int balde =hashPrincipal(clave);
 
-    int i, last;
-    if(tabla->n!=0){
-        for(i=hash(clave),last=(i-1+B) % B; i!=last && tabla->celdas[i].estado!= vacio; i=(i+1)% B){
-            if (tabla->celdas[i].estado == descartado) continue;
-            else if (tabla->celdas[i].clave == clave) break; //sólo compara clave si está ocupado
-        }
-        if (tabla->celdas[i].clave == clave && tabla->celdas[i].estado == ocupado ){ 
-            tabla->celdas[i].estado=descartado; tabla->n--; return (0);}
-        else{
-            printf("Error en descarte: No se encuentra activa la clave=%d\n",clave); return (1);}
+    //Verificar si hay tabla cerrada creada
+    if (hashtab[balde] == NULL) {
+        printf("No encontro %d.\n", clave);
+        return -1;
     }
-    else { printf("Error en descarte de clave %d: Tabla vacía\n", clave); return (2);}
+
+    // Para balde existente:
+    return buscarEnCerrado(hashtab[balde], clave);
 }
+
+
 
 void insertarAbierta(int clave) {
 
@@ -160,17 +157,22 @@ void insertarAbierta(int clave) {
     insertarEnCerrado(hashtab[balde], clave);
 }
 
-int buscarAbierta(int clave) {
-    int balde =hashPrincipal(clave);
 
-    //Verificar si hay tabla cerrada creada
-    if (hashtab[balde] == NULL) {
-        printf("No encontro %d.\n", clave);
-        return -1;
+
+int descartarEnCerrado(TablaCerrada *tabla, int clave){
+
+    int i, last;
+    if(tabla->n!=0){
+        for(i=hash(clave),last=(i-1+B) % B; i!=last && tabla->celdas[i].estado!= vacio; i=(i+1)% B){
+            if (tabla->celdas[i].estado == descartado) continue;
+            else if (tabla->celdas[i].clave == clave) break; //sólo compara clave si está ocupado
+        }
+        if (tabla->celdas[i].clave == clave && tabla->celdas[i].estado == ocupado ){ 
+            tabla->celdas[i].estado=descartado; tabla->n--; return (0);}
+        else{
+            printf("Error en descarte: No se encuentra activa la clave=%d\n",clave); return (1);}
     }
-
-    // Para balde existente:
-    return buscarEnCerrado(hashtab[balde], clave);
+    else { printf("Error en descarte de clave %d: Tabla vacía\n", clave); return (2);}
 }
 
 int descartarAbierta(int clave){
