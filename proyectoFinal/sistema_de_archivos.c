@@ -4,7 +4,7 @@
 
 #define BLOCK_SIZE 512
 #define NOMBRE_ARCHIVO "mi_sistema_de_archivos"
-#define NUMERO_DE_BLOQUES 10
+#define NUMERO_DE_BLOQUES 50
 #define LONGITUD_NOMBRES 100
 #define ENTRADAS_POR_BLOQUE ((BLOCK_SIZE - sizeof(int)) / sizeof(Apuntador))
 
@@ -492,7 +492,7 @@ void copiar_archivo(Apuntador* source_apuntador, int dest_dir_block_num) {
         return;
     }
 
-    // 3. Verificar si ya existe un archivo con el mismo nombre en el destino
+    //verificar si ya existe un archivo con el mismo nombre en el destino
     for (int i = 0; i < dir_destino->contador_de_apuntadores; i++) {
         if (strcmp(dir_destino->apuntadores_de_objetos[i].nombre, source_apuntador->nombre) == 0) {
             printf("Error: El archivo '%s' ya existe en el directorio destino.\n", source_apuntador->nombre);
@@ -500,34 +500,349 @@ void copiar_archivo(Apuntador* source_apuntador, int dest_dir_block_num) {
         }
     }
 
-    // 4. Encontrar un bloque libre para el contenido del nuevo archivo
+    // encontrar nuevo bloque para el archivo destino
     int nuevo_bloque = encontrar_bloque_libre();
     if (nuevo_bloque == -1) {
         printf("Error: No hay bloques libres en el disco.\n");
         return;
     }
 
-    // 5. Copiar el contenido del bloque del archivo original al nuevo bloque
+    // copiar el contenido del bloque del archivo original al nuevo bloque
     char buffer_archivo[BLOCK_SIZE];
     ReadBlock(source_apuntador->numero_de_bloque, buffer_archivo);
     WriteBlock(nuevo_bloque, buffer_archivo);
 
-    // 6. Crear el nuevo Apuntador en el directorio destino
+    //crear el nuevo apuntador en el directorio destino
     Apuntador* nuevo_apuntador = &dir_destino->apuntadores_de_objetos[dir_destino->contador_de_apuntadores];
     strcpy(nuevo_apuntador->nombre, source_apuntador->nombre);
     nuevo_apuntador->esDirectorio = 0; // Es un archivo
     nuevo_apuntador->numero_de_bloque = nuevo_bloque;
     nuevo_apuntador->size = source_apuntador->size;
     
-    // 7. Actualizar el contador del directorio destino y guardarlo en el disco
+    // actualizar el contador del directorio destino y guardarlo en el disco
     dir_destino->contador_de_apuntadores++;
-    WriteBlock(dest_dir_block_num, buffer_dest);
+    WriteBlock(dest_dir_block_num, buffer_destino);
     
-    // 8. Actualizar el mapa de bloques en memoria y guardarlo en el disco
+    // actualizar el mapa de bloques en memoria y guardarlo en el disco
     bloques_libres[nuevo_bloque] = 0;
     guardar_mapa_de_bloques();
     
-    printf("Archivo '%s' copiado con éxito.\n", source_apuntador->nombre);
+    printf("Archivo '%s' copiado.\n", source_apuntador->nombre);
+}
+
+void copiar_directorio_recursivo(Apuntador* source_dir_apuntador, int parent_dest_dir_block_num) {
+    // cargar el directorio padre de destino para añadir la nueva carpeta
+    char buffer_parent_dest[BLOCK_SIZE];
+    ReadBlock(parent_dest_dir_block_num, buffer_parent_dest);
+    Bloque_directorio* dir_padre_destino = (Bloque_directorio*)buffer_parent_dest;
+
+    
+    //verificar si hay espacio en el directorio padre de destino
+    if (dir_padre_destino->contador_de_apuntadores >= ENTRADAS_POR_BLOQUE) {
+        printf("Error: El directorio destino está lleno, no se puede copiar '%s'.\n", source_dir_apuntador->nombre);
+        return;
+    }
+    
+    // verificar si ya existe un objeto con el mismo nombre en el destino
+    for (int i = 0; i < dir_padre_destino->contador_de_apuntadores; i++) {
+        if (strcmp(dir_padre_destino->apuntadores_de_objetos[i].nombre, source_dir_apuntador->nombre) == 0) {
+            printf("Error: '%s' ya existe en el directorio destino.\n", source_dir_apuntador->nombre);
+            return;
+        }
+    }
+
+    // Encontrar un bloque libre para el nuevo directorio
+    int nuevo_bloque_dir = encontrar_bloque_libre();
+    if (nuevo_bloque_dir == -1) {
+        printf("Error: No hay bloques libres en el disco para crear la copia de '%s'.\n", source_dir_apuntador->nombre);
+        return;
+    }
+
+    // crear el Apuntador para este nuevo directorio en su directorio padre
+    Apuntador* nuevo_dir_apuntador = &dir_padre_destino->apuntadores_de_objetos[dir_padre_destino->contador_de_apuntadores];
+    strcpy(nuevo_dir_apuntador->nombre, source_dir_apuntador->nombre);
+    nuevo_dir_apuntador->esDirectorio = 1;
+    nuevo_dir_apuntador->numero_de_bloque = nuevo_bloque_dir;
+    nuevo_dir_apuntador->size = 0;
+    
+    dir_padre_destino->contador_de_apuntadores++;
+    WriteBlock(parent_dest_dir_block_num, buffer_parent_dest);
+
+    //inicializar el contenido del nuevo directorio con sus entradas "." y ".."
+    Bloque_directorio nuevo_dir_contenido;
+    nuevo_dir_contenido.contador_de_apuntadores = 2;
+
+    //entrada para "."
+    strcpy(nuevo_dir_contenido.apuntadores_de_objetos[0].nombre, ".");
+    nuevo_dir_contenido.apuntadores_de_objetos[0].esDirectorio = 1;
+    nuevo_dir_contenido.apuntadores_de_objetos[0].numero_de_bloque = nuevo_bloque_dir;
+    nuevo_dir_contenido.apuntadores_de_objetos[0].size = 0;
+
+    //entrada para ".." 
+    strcpy(nuevo_dir_contenido.apuntadores_de_objetos[1].nombre, "..");
+    nuevo_dir_contenido.apuntadores_de_objetos[1].esDirectorio = 1;
+    nuevo_dir_contenido.apuntadores_de_objetos[1].numero_de_bloque = parent_dest_dir_block_num;
+    nuevo_dir_contenido.apuntadores_de_objetos[1].size = 0;
+
+    WriteBlock(nuevo_bloque_dir, (char*)&nuevo_dir_contenido);
+    
+    // marcar el bloque como usado y guardar el mapa
+    bloques_libres[nuevo_bloque_dir] = 0;
+    guardar_mapa_de_bloques();
+    printf("Directorio '%s' copiado.\n", source_dir_apuntador->nombre);
+
+    // cargar el directorio origen para iterar sobre su contenido
+    char buffer_source[BLOCK_SIZE];
+    ReadBlock(source_dir_apuntador->numero_de_bloque, buffer_source);
+    Bloque_directorio* dir_origen = (Bloque_directorio*)buffer_source;
+
+    //copiar cada elemento del directorio origen al nuevo directorio
+    for (int i = 0; i < dir_origen->contador_de_apuntadores; i++) {
+        Apuntador* item_a_copiar = &dir_origen->apuntadores_de_objetos[i];
+
+        // Omitir "." y ".." 
+        if (strcmp(item_a_copiar->nombre, ".") == 0 || strcmp(item_a_copiar->nombre, "..") == 0) {
+            continue;
+        }
+
+        // copiar un archivo o un subdirectorio
+        if (item_a_copiar->esDirectorio) {
+            copiar_directorio_recursivo(item_a_copiar, nuevo_bloque_dir);
+        } else {
+            copiar_archivo(item_a_copiar, nuevo_bloque_dir);
+        }
+    }
+}
+void cp(char* nombre_origen, char* nombre_destino_dir) {
+    //Obtener directorio actual
+    char buffer[BLOCK_SIZE];
+    ReadBlock(bloque_actual, buffer);
+    Bloque_directorio* directorio_actual_ptr = (Bloque_directorio*)buffer;
+
+    // Apuntador del archivo/directorio de origen
+    int indice_origen = -1;
+    for (int i = 0; i < directorio_actual_ptr->contador_de_apuntadores; i++) {
+        if (strcmp(directorio_actual_ptr->apuntadores_de_objetos[i].nombre, nombre_origen) == 0) {
+            indice_origen = i;
+            break;
+        }
+    }
+
+    if (indice_origen == -1) {
+        printf("Error: El origen '%s' no existe.\n", nombre_origen);
+        return;
+    }
+    
+    //buscar el bloque del directorio destino
+    int bloque_destino_dir = -1;
+    //caso raiz "/"
+    if (strcmp(nombre_destino_dir, "/") == 0) {
+        bloque_destino_dir = 1;
+    } else {
+        //buscar el directorio destino en el directorio actual
+        for (int i = 0; i < directorio_actual_ptr->contador_de_apuntadores; i++) {
+            if (strcmp(directorio_actual_ptr->apuntadores_de_objetos[i].nombre, nombre_destino_dir) == 0) {
+                // verificar que el destino sea realmente un directorio
+                if (directorio_actual_ptr->apuntadores_de_objetos[i].esDirectorio==0) {
+                    printf("Error: El destino '%s' no es un directorio.\n", nombre_destino_dir);
+                    return;
+                }
+                bloque_destino_dir = directorio_actual_ptr->apuntadores_de_objetos[i].numero_de_bloque;
+                break;
+            }
+        }
+    }
+
+    if (bloque_destino_dir == -1) {
+        printf("Error: El directorio destino '%s' no existe.\n", nombre_destino_dir);
+        return;
+    }
+
+    // 4. Decidir qué función auxiliar llamar basándose en el tipo del origen
+    Apuntador apuntador_origen = directorio_actual_ptr->apuntadores_de_objetos[indice_origen];
+    if (apuntador_origen.esDirectorio) {
+        copiar_directorio_recursivo(&apuntador_origen, bloque_destino_dir);
+    } else {
+        copiar_archivo(&apuntador_origen, bloque_destino_dir);
+    }
+}
+
+void mv(char* nombre_origen, char* nombre_destino) {
+    //obtener directorio actual
+    char buffer_actual[BLOCK_SIZE];
+    ReadBlock(bloque_actual, buffer_actual);
+    Bloque_directorio* directorio_actual = (Bloque_directorio*)buffer_actual;
+
+    // buscar apuntador de origen
+    int indice_origen = -1;
+    for (int i = 0; i < directorio_actual->contador_de_apuntadores; i++) {
+        if (strcmp(directorio_actual->apuntadores_de_objetos[i].nombre, nombre_origen) == 0) {
+            indice_origen = i;
+            break;
+        }
+    }
+
+    if (indice_origen == -1) {
+        printf("Error: El origen '%s' no existe.\n", nombre_origen);
+        return;
+    }
+    //guardamos una copia del Apuntador de origen antes de cualquier cambio
+    Apuntador apuntador_a_mover = directorio_actual->apuntadores_de_objetos[indice_origen];
+
+    //verificar el destino
+    int indice_destino_dir = -1;
+    for (int i = 0; i < directorio_actual->contador_de_apuntadores; i++) {
+        if (strcmp(directorio_actual->apuntadores_de_objetos[i].nombre, nombre_destino) == 0) {
+            if (directorio_actual->apuntadores_de_objetos[i].esDirectorio) {
+                indice_destino_dir = i;
+            }
+            break;
+        }
+    }
+
+    // decidir si mover o renombrar
+    if (indice_destino_dir != -1) {
+        // MOver a un directorio
+        int bloque_destino_dir = directorio_actual->apuntadores_de_objetos[indice_destino_dir].numero_de_bloque;
+        
+        // obtener directorio destino.
+        char buffer_destino[BLOCK_SIZE];
+        ReadBlock(bloque_destino_dir, buffer_destino);
+        Bloque_directorio* dir_destino = (Bloque_directorio*)buffer_destino;
+
+        //verificar si hay espacio en el directorio destino
+        if (dir_destino->contador_de_apuntadores >= ENTRADAS_POR_BLOQUE) {
+            printf("Error: El directorio destino '%s' está lleno.\n", nombre_destino);
+            return;
+        }
+        
+        //verificar si ya existe el objeto
+        for (int i = 0; i < dir_destino->contador_de_apuntadores; i++) {
+            if (strcmp(dir_destino->apuntadores_de_objetos[i].nombre, apuntador_a_mover.nombre) == 0) {
+                printf("Error: Ya existe un objeto llamado '%s' en el directorio destino.\n", apuntador_a_mover.nombre);
+                return;
+            }
+        }
+
+        // Añadir el apuntador al directorio destino
+        dir_destino->apuntadores_de_objetos[dir_destino->contador_de_apuntadores] = apuntador_a_mover;
+        dir_destino->contador_de_apuntadores++;
+        WriteBlock(bloque_destino_dir, buffer_destino);
+
+        // eliminar apuntador del direectorio origen.
+        for (int i = indice_origen; i < directorio_actual->contador_de_apuntadores - 1; i++) {
+            directorio_actual->apuntadores_de_objetos[i] = directorio_actual->apuntadores_de_objetos[i + 1];
+        }
+        directorio_actual->contador_de_apuntadores--;
+        WriteBlock(bloque_actual, buffer_actual);
+
+        printf("'%s' movido a '%s'.\n", nombre_origen, nombre_destino);
+
+    } else {//Renombrar
+        for (int i = 0; i < directorio_actual->contador_de_apuntadores; i++) {
+            if (strcmp(directorio_actual->apuntadores_de_objetos[i].nombre, nombre_destino) == 0) {
+                printf("Error: Ya existe un objeto llamado '%s'.\n", nombre_destino);
+                return;
+            }
+        }
+
+        // cambiar el nombre del apuntador existente.
+        strcpy(directorio_actual->apuntadores_de_objetos[indice_origen].nombre, nombre_destino);
+        WriteBlock(bloque_actual, buffer_actual);
+        printf("'%s' renombrado a '%s'.\n", nombre_origen, nombre_destino);
+    }
+}
+
+
+int coincidencia(char* texto, char* patron_b) {
+    
+    char patron[LONGITUD_NOMBRES];
+    strcpy(patron, patron_b);
+    
+    char* asterisco = strchr(patron, '*');
+    int len_patron = strlen(patron);
+
+    if (asterisco != NULL) {
+        // existe el *
+        *asterisco = '\0'; // divide el patron en dos en el lugar del '*'
+        const char* prefijo = patron;
+        const char* sufijo = asterisco + 1;
+        
+        //la linea COMIENZA CON EL PREFIJO
+        if (strncmp(texto, prefijo, strlen(prefijo)) != 0) {
+            return 0; // No coincide
+        }
+        
+        // Y el resto de la línea debe contener el sufijo
+        if (strstr(texto + strlen(prefijo), sufijo) == NULL) { //verificamos el sufijo
+            return 0; // No coincide
+        }
+
+        return 1; // Coincide
+
+    } else if (len_patron > 0 && patron[len_patron - 1] == '$') {
+        // caso2: termina con $
+        char patron_sin_dolar[LONGITUD_NOMBRES];
+        strncpy(patron_sin_dolar, patron, len_patron - 1);
+        patron_sin_dolar[len_patron - 1] = '\0';
+        
+        int len_texto = strlen(texto);
+        int len_patron_sin_dolar = strlen(patron_sin_dolar);
+
+        if (len_texto < len_patron_sin_dolar) {
+            return 0; // el texto es mas corto que el patrón
+        }
+        
+        // comparar si el final del texto es igual que el patron
+        if (strcmp(texto+len_texto-len_patron_sin_dolar, patron_sin_dolar) == 0) {
+            return 1; // Coincide
+        }
+
+    } else {
+        // busqueda sin comodin
+        if (strstr(texto, patron) != NULL) {
+            return 1; // Coincide
+        }
+    }
+
+    return 0; // No se encontro coincidencia
+}
+
+void grep(char* patron, char* nombre_archivo) {
+    //obtener directorio actual
+    char buffer_dir[BLOCK_SIZE];
+    ReadBlock(bloque_actual, buffer_dir);
+    Bloque_directorio* directorio_actual = (Bloque_directorio*)buffer_dir;
+
+    //Buscar el Apuntador del archivo
+    int indice_encontrado = -1;
+    for (int i = 0; i < directorio_actual->contador_de_apuntadores; i++) {
+        if (strcmp(directorio_actual->apuntadores_de_objetos[i].nombre, nombre_archivo) == 0) {
+            if(directorio_actual->apuntadores_de_objetos[i].esDirectorio) {
+                printf("Error: No se puede usar grep en un directorio.\n");
+                return;
+            }
+            indice_encontrado = i;
+            break;
+        }
+    }
+
+    if (indice_encontrado == -1) {
+        printf("Error: Archivo '%s' no encontrado.\n", nombre_archivo);
+        return;
+    }
+    
+    // leer contenido del archivo
+    Apuntador apuntador_archivo = directorio_actual->apuntadores_de_objetos[indice_encontrado];
+    char buffer_archivo[BLOCK_SIZE];
+    ReadBlock(apuntador_archivo.numero_de_bloque, buffer_archivo);
+    Bloque_archivo* archivo = (Bloque_archivo*)buffer_archivo;
+
+    // usar la función auxiliar para ver si hay coincidencia
+    if (coincidencia(archivo->data, patron)==1) {
+        // Si coincide, imprimir el contenido del archivo
+        printf("%s\n", archivo->data);
+    }
 }
 
 int main(){
@@ -606,7 +921,17 @@ int main(){
             sscanf(comando, "rm %s", arg1);
             rm(arg1);
         }
-
+        else if(strncmp(comando, "cp ", 3) == 0){
+            sscanf(comando, "cp %s %s", arg1, arg2);
+            cp(arg1, arg2);
+        }else if(strncmp(comando, "mv ", 3) == 0){
+            sscanf(comando, "mv %s %s", arg1, arg2);
+            mv(arg1, arg2);
+        }
+        else if(strncmp(comando, "grep ", 5) == 0){
+            sscanf(comando, "grep %s %s", arg1, arg2);
+            grep(arg1, arg2);
+        }
 
     }
 
