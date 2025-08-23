@@ -5,7 +5,7 @@
 #define BLOCK_SIZE 512
 #define NOMBRE_ARCHIVO "mi_sistema_de_archivos"
 #define NUMERO_DE_BLOQUES 50
-#define LONGITUD_NOMBRES 100
+#define LONGITUD_NOMBRES 28
 #define ENTRADAS_POR_BLOQUE ((BLOCK_SIZE - sizeof(int)) / sizeof(Apuntador))
 
 int bloque_actual =1; //BLOQUE RAIZ 
@@ -845,6 +845,116 @@ void grep(char* patron, char* nombre_archivo) {
     }
 }
 
+void create(char* nombre_destino, char* ruta_origen) {
+    
+    //copimos ruta de origen para editarla
+    char ruta_origen_editable[LONGITUD_NOMBRES];
+    strcpy(ruta_origen_editable, ruta_origen);
+
+    Apuntador apuntador_origen;
+    int encontrado = 0;
+
+    // Buscamos si la ruta contiene un '/' para saber si es una ruta o un nombre simple
+    char* separador = strchr(ruta_origen_editable, '/');
+    
+    if (separador != NULL) {
+        // caso 1: el archivo que tiene el contenido esta en un directorio dentro del directorio actual.
+        *separador = '\0'; // Divide la cadena en directorio y archivo
+        char* nombre_dir_origen = ruta_origen_editable;
+        char* nombre_archivo_origen = separador + 1;
+
+        // obtener el diretorio que contiene el archivo con el contenido
+        char buffer_actual[BLOCK_SIZE];
+        ReadBlock(bloque_actual, buffer_actual);
+        Bloque_directorio* dir_actual = (Bloque_directorio*)buffer_actual;
+
+        int bloque_dir_origen = -1;
+        for (int i = 0; i < dir_actual->contador_de_apuntadores; i++) {
+            if (strcmp(dir_actual->apuntadores_de_objetos[i].nombre, nombre_dir_origen) == 0 && dir_actual->apuntadores_de_objetos[i].esDirectorio) {
+                bloque_dir_origen = dir_actual->apuntadores_de_objetos[i].numero_de_bloque;
+                break;
+            }
+        }
+
+        if (bloque_dir_origen != -1) {
+            // obtener archivo 
+            char buffer_origen[BLOCK_SIZE];
+            ReadBlock(bloque_dir_origen, buffer_origen);
+            Bloque_directorio* dir_origen = (Bloque_directorio*)buffer_origen;
+
+            for (int i = 0; i < dir_origen->contador_de_apuntadores; i++) {
+                if (strcmp(dir_origen->apuntadores_de_objetos[i].nombre, nombre_archivo_origen) == 0) {
+                    apuntador_origen = dir_origen->apuntadores_de_objetos[i];
+                    encontrado = 1;
+                    break;
+                }
+            }
+        }
+
+    } else {
+        //el archivo con el contenido esta en el directorio actual
+        char buffer_actual[BLOCK_SIZE];
+        ReadBlock(bloque_actual, buffer_actual);
+        Bloque_directorio* dir_actual = (Bloque_directorio*)buffer_actual;
+        for (int i = 0; i < dir_actual->contador_de_apuntadores; i++) {
+            if (strcmp(dir_actual->apuntadores_de_objetos[i].nombre, ruta_origen) == 0) {
+                apuntador_origen = dir_actual->apuntadores_de_objetos[i];
+                encontrado = 1;
+                break;
+            }
+        }
+    }
+
+    if (encontrado==0) {
+        printf("Error: No se pudo encontrar el origen '%s'.\n", ruta_origen);
+        return;
+    }
+    if (apuntador_origen.esDirectorio==1) {
+        printf("Error: No se puede usar este comando para copiar directorios.\n");
+        return;
+    }
+
+    //copiar el archivo en el directorio actual
+    
+    char buffer_dest[BLOCK_SIZE];
+    ReadBlock(bloque_actual, buffer_dest); // El destino es el directorio actual
+    Bloque_directorio* dir_destino = (Bloque_directorio*)buffer_dest;
+
+    if (dir_destino->contador_de_apuntadores >= ENTRADAS_POR_BLOQUE) {
+        printf("Error: El directorio actual está lleno, no se puede crear '%s'.\n", nombre_destino);
+        return;
+    }
+
+    // verificacion de nombre en el dir actua;
+    for (int i = 0; i < dir_destino->contador_de_apuntadores; i++) {
+        if (strcmp(dir_destino->apuntadores_de_objetos[i].nombre, nombre_destino) == 0) {
+            printf("Error: Ya existe un objeto llamado '%s' en el directorio actual.\n", nombre_destino);
+            return;
+        }
+    }
+
+    int nuevo_bloque = encontrar_bloque_libre();
+    if (nuevo_bloque == -1) { printf("No hay bloques libres en el disco.\n"); return; }
+
+    //copiar el contenido del bloque del archivo
+    char buffer_archivo[BLOCK_SIZE];
+    ReadBlock(apuntador_origen.numero_de_bloque, buffer_archivo);
+    WriteBlock(nuevo_bloque, buffer_archivo);
+
+    // Crear el nuevo Apuntador en el directorio actual con el nuevo nombre
+    Apuntador* nuevo_apuntador = &dir_destino->apuntadores_de_objetos[dir_destino->contador_de_apuntadores];
+    strcpy(nuevo_apuntador->nombre, nombre_destino); // Usar el nuevo nombre
+    nuevo_apuntador->esDirectorio = 0;
+    nuevo_apuntador->numero_de_bloque = nuevo_bloque;
+    nuevo_apuntador->size = apuntador_origen.size;
+    
+    dir_destino->contador_de_apuntadores++;
+    WriteBlock(bloque_actual, buffer_dest);
+    
+    bloques_libres[nuevo_bloque] = 0;
+    guardar_mapa_de_bloques();
+    printf("Archivo '%s' creado como '%s'.\n", ruta_origen, nombre_destino);
+}
 int main(){
 
     
@@ -931,6 +1041,10 @@ int main(){
         else if(strncmp(comando, "grep ", 5) == 0){
             sscanf(comando, "grep %s %s", arg1, arg2);
             grep(arg1, arg2);
+        }
+        else if (strncmp(comando, "create ", 7) == 0){
+            sscanf(comando, "create %s %s", arg1, arg2);
+            create(arg1, arg2); 
         }
 
     }
